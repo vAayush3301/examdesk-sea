@@ -8,6 +8,6 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface ApiService {
-    @GET("get_tests")
+    @GET(Statics.GET_TEST_ENDPOINT)
     Call<List<Test>> getTests(@Query("clientId") String clientId);
 }
