@@ -1,5 +1,6 @@
 package av.sea.examdesk.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -8,6 +9,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,5 +67,8 @@ public class HomeFragment extends Fragment {
                 t.printStackTrace();
             }
         });
+
+        ExtendedFloatingActionButton newTestButton = view.findViewById(R.id.create_new_test);
+        newTestButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), NewTestActivity.class)));
     }
 }
