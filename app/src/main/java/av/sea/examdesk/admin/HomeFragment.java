@@ -1,9 +1,7 @@
 package av.sea.examdesk.admin;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -53,7 +51,7 @@ public class HomeFragment extends Fragment {
         TestRecyclerAdapter adapter = new TestRecyclerAdapter(tests);
         testRecycler.setAdapter(adapter);
 
-        api.getTests(Statics.CLIENT_ID).enqueue(new Callback<List<Test>>() {
+        api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<Test>> call, Response<List<Test>> response) {
                 if (response.isSuccessful()) {
