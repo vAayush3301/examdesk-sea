@@ -6,6 +6,7 @@ import av.sea.examdesk.model.Test;
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -19,4 +20,7 @@ public interface ApiService {
     @Multipart
     @POST(Statics.UPLOAD_IMAGE_ENDPOINT)
     Call<ResponseBody> uploadImage(@Part MultipartBody.Part file);
+
+    @DELETE(Statics.DELETE_IMAGE_ENDPOINT)
+    Call<ResponseBody> deleteImage(@Query("key") String key);
 }
