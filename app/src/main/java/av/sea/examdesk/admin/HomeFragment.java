@@ -2,6 +2,7 @@ package av.sea.examdesk.admin;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -27,6 +28,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeFragment extends Fragment {
+    private final Handler handler = new Handler();
+    private Runnable periodicRunnable;
+
+    private TestRecyclerAdapter adapter;
+
     public HomeFragment() {
         super(R.layout.fragment_home);
     }
@@ -51,24 +57,37 @@ public class HomeFragment extends Fragment {
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
         List<Test> tests = new ArrayList<>();
-        TestRecyclerAdapter adapter = new TestRecyclerAdapter(requireContext(), tests);
+        adapter = new TestRecyclerAdapter(requireContext(), tests);
         testRecycler.setAdapter(adapter);
 
-        api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
-            @Override
-            public void onResponse(Call<List<Test>> call, Response<List<Test>> response) {
-                if (response.isSuccessful()) {
-                    adapter.setTests(response.body());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Test>> call, Throwable t) {
-                t.printStackTrace();
-            }
-        });
+        startPeriodicTask(api);
 
         ExtendedFloatingActionButton newTestButton = view.findViewById(R.id.create_new_test);
         newTestButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), NewTestActivity.class)));
+    }
+
+    private void startPeriodicTask(ApiService api) {
+        periodicRunnable = new Runnable() {
+            @Override
+            public void run() {
+                api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
+                        if (response.isSuccessful()) {
+                            adapter.setTests(response.body());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
+
+                handler.postDelayed(this, 5000);
+            }
+        };
+
+        handler.post(periodicRunnable);
     }
 }
