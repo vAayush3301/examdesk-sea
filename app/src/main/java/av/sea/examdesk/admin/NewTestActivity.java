@@ -4,15 +4,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
@@ -22,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 
 import av.sea.examdesk.R;
+import av.sea.examdesk.admin.adapters.ImageListAdapter;
 import av.sea.examdesk.model.Image;
 import av.sea.examdesk.model.Question;
 import av.sea.examdesk.model.Test;
@@ -36,6 +44,11 @@ public class NewTestActivity extends AppCompatActivity {
     private boolean editFlag = false;
     private int currentQuestion = 1;
 
+    private ActivityResultLauncher<String> pickImageLauncher;
+    private String imageAlt;
+
+    private ImageListAdapter imageListAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +58,17 @@ public class NewTestActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        Image image = new Image("test", imageAlt);
+                        imageKeys.add(image);
+                        imageListAdapter.notifyDataSetChanged();
+                    }
+                }
+        );
 
         BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
@@ -175,6 +199,34 @@ public class NewTestActivity extends AppCompatActivity {
     }
 
     private void handleImages() {
+        View view = getLayoutInflater().inflate(R.layout.add_image_dialog, null);
+
+        RecyclerView imageRecycler = view.findViewById(R.id.imageRecycler);
+        imageRecycler.setLayoutManager(new LinearLayoutManager(this));
+        imageListAdapter = new ImageListAdapter(this, imageKeys);
+        imageRecycler.setAdapter(imageListAdapter);
+
+        MaterialButton addImage = view.findViewById(R.id.addImageBtn);
+        TextInputEditText altImage = view.findViewById(R.id.imageAlt);
+
+        addImage.setOnClickListener(v -> {
+            String imageAlt = String.valueOf(altImage.getText());
+
+            if (imageAlt.isEmpty()) {
+                Toast.makeText(NewTestActivity.this, "Image Alt is Empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            NewTestActivity.this.imageAlt = imageAlt;
+            pickImageLauncher.launch("image/*");
+        });
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Add Images")
+                .setIcon(R.drawable.sea)
+                .setView(view)
+                .setNegativeButton("Close", (d, w) -> d.dismiss())
+                .show();
     }
 
     private void handlePrevious() {
