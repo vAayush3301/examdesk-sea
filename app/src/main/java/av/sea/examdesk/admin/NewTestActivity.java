@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -22,6 +23,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
@@ -180,6 +182,86 @@ public class NewTestActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        FloatingActionButton publishBtn = findViewById(R.id.publishTest);
+        publishBtn.setOnClickListener(v -> {
+            View view = getLayoutInflater().inflate(R.layout.duration_picker, null);
+            TextInputEditText duration_edit = view.findViewById(R.id.duration);
+
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Set Test Duration")
+                    .setIcon(R.drawable.sea)
+                    .setView(view)
+                    .setNegativeButton("Cancel", ((dialog, which) -> dialog.dismiss()))
+                    .setPositiveButton("Publish", ((dialog, which) -> {
+                        try {
+                            int duration = Integer.parseInt(String.valueOf(duration_edit.getText()));
+
+                            if (duration <= 0) {
+                                Toast.makeText(this, "Test duration cannot be less than 1 minute.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            publishTest(duration);
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(this, "Time is numeric.", Toast.LENGTH_SHORT).show();
+                        }
+
+                    })).show();
+        });
+    }
+
+    private void publishTest(int duration) {
+        String testName = String.valueOf(this.testName.getText());
+
+        Test test = new Test(Statics.CLIENT_ID, testName, questions, imageKeys, duration);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Statics.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiService apiService = retrofit.create(ApiService.class);
+
+        Call<ResponseBody> createTestCall = apiService.createTest(Statics.CLIENT_ID, test);
+        createTestCall.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(NewTestActivity.this, "Test Published", Toast.LENGTH_SHORT).show();
+
+                    if (editFlag) {
+                        Call<ResponseBody> deleteTestCall = apiService.deleteTest(Statics.CLIENT_ID, NewTestActivity.this.test);
+                        deleteTestCall.enqueue(new Callback<>() {
+                            @Override
+                            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                if (response.isSuccessful() && response.body() != null) {
+                                    Log.i("DELETE_TEST", "Test Deleted: " + response.code());
+                                } else {
+                                    Log.e("DELETE_TEST", "Error while deleting Test: " + response.code());
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                Log.e("DELETE_TEST", "Failed to Delete Test: " + t.getMessage());
+                            }
+                        });
+                    }
+
+                    finish();
+                } else {
+                    Toast.makeText(NewTestActivity.this, "Error while publishing Test.", Toast.LENGTH_SHORT).show();
+                    Log.e("CREATE_TEST", "SERVER: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                Toast.makeText(NewTestActivity.this, "Failed to publish test.", Toast.LENGTH_SHORT).show();
+                Log.e("CREATE_TEST", "SERVER: " + t.getMessage());
+            }
+        });
     }
 
     private void loadQuestion(int key) {
@@ -298,7 +380,7 @@ public class NewTestActivity extends AppCompatActivity {
 
             byte[] buffer = new byte[1024];
             int len;
-            while ((len = inputStream.read(buffer)) != -1) {
+            while ((len = Objects.requireNonNull(inputStream).read(buffer)) != -1) {
                 outputStream.write(buffer, 0, len);
             }
 
@@ -306,7 +388,7 @@ public class NewTestActivity extends AppCompatActivity {
             inputStream.close();
 
             RequestBody requestFile =
-                    RequestBody.create(MediaType.parse("image/*"), file);
+                    RequestBody.create(Objects.requireNonNull(MediaType.parse("image/*")), file);
 
             MultipartBody.Part body =
                     MultipartBody.Part.createFormData("file", file.getName(), requestFile);
@@ -322,7 +404,7 @@ public class NewTestActivity extends AppCompatActivity {
 
             call.enqueue(new Callback<>() {
                 @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                     if (response.isSuccessful()) {
                         try {
                             if (response.body() != null) {
@@ -344,7 +426,7 @@ public class NewTestActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                     Toast.makeText(NewTestActivity.this, "Failed to upload image. Please try again.", Toast.LENGTH_SHORT).show();
                     Log.e("UPLOAD", "Failed: " + t.getMessage());
                 }

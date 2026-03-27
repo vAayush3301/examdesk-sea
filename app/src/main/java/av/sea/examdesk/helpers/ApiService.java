@@ -6,6 +6,7 @@ import av.sea.examdesk.model.Test;
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
@@ -23,4 +24,10 @@ public interface ApiService {
 
     @DELETE(Statics.DELETE_IMAGE_ENDPOINT)
     Call<ResponseBody> deleteImage(@Query("key") String key);
+
+    @POST(Statics.CREATE_TEST_ENDPOINT)
+    Call<ResponseBody> createTest(@Query("clientId") String clientId, @Body Test test);
+
+    @POST(Statics.DELETE_TEST_ENDPOINT)
+    Call<ResponseBody> deleteTest(@Query("clientId") String clientId, @Body Test test);
 }
