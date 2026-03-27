@@ -1,5 +1,7 @@
 package av.sea.examdesk.admin.adapters;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +15,15 @@ import com.google.android.material.textview.MaterialTextView;
 import java.util.List;
 
 import av.sea.examdesk.R;
+import av.sea.examdesk.admin.NewTestActivity;
 import av.sea.examdesk.model.Test;
 
 public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapter.ViewHolder> {
+    Context context;
     List<Test> tests;
 
-    public TestRecyclerAdapter(List<Test> tests) {
+    public TestRecyclerAdapter(Context context, List<Test> tests) {
+        this.context = context;
         this.tests = tests;
     }
 
@@ -40,6 +45,12 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
 
         holder.testName.setText(test.getTestName());
         holder.testDuration.setText(String.valueOf(test.getDuration()));
+
+        holder.editTest.setOnClickListener(v -> {
+            Intent editTestIntent = new Intent(context, NewTestActivity.class);
+            editTestIntent.putExtra("test", test);
+            context.startActivity(editTestIntent);
+        });
     }
 
     @Override

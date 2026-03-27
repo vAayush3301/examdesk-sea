@@ -51,7 +51,7 @@ public class HomeFragment extends Fragment {
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
         List<Test> tests = new ArrayList<>();
-        TestRecyclerAdapter adapter = new TestRecyclerAdapter(tests);
+        TestRecyclerAdapter adapter = new TestRecyclerAdapter(requireContext(), tests);
         testRecycler.setAdapter(adapter);
 
         api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
