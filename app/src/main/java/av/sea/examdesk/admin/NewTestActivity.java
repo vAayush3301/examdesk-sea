@@ -1,9 +1,11 @@
 package av.sea.examdesk.admin;
 
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -24,15 +26,31 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import av.sea.examdesk.R;
 import av.sea.examdesk.admin.adapters.ImageListAdapter;
+import av.sea.examdesk.helpers.ApiService;
+import av.sea.examdesk.helpers.Statics;
 import av.sea.examdesk.model.Image;
 import av.sea.examdesk.model.Question;
 import av.sea.examdesk.model.Test;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NewTestActivity extends AppCompatActivity {
     private MaterialTextView questionCount;
@@ -63,9 +81,7 @@ public class NewTestActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        Image image = new Image("test", imageAlt);
-                        imageKeys.add(image);
-                        imageListAdapter.notifyDataSetChanged();
+                        uploadToServer(uri);
                     }
                 }
         );
@@ -271,5 +287,71 @@ public class NewTestActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    private void uploadToServer(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            File file = new File(getCacheDir(), "upload_" + System.currentTimeMillis() + ".jpg");
+
+            OutputStream outputStream = new FileOutputStream(file);
+
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+
+            outputStream.close();
+            inputStream.close();
+
+            RequestBody requestFile =
+                    RequestBody.create(MediaType.parse("image/*"), file);
+
+            MultipartBody.Part body =
+                    MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(Statics.BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            ApiService apiService = retrofit.create(ApiService.class);
+
+            Call<ResponseBody> call = apiService.uploadImage(body);
+
+            call.enqueue(new Callback<>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        try {
+                            if (response.body() != null) {
+                                String key = response.body().string();
+                                Image image = new Image(key, imageAlt);
+                                imageKeys.add(image);
+                                imageListAdapter.notifyDataSetChanged();
+                            } else
+                                Toast.makeText(NewTestActivity.this, "Error getting image key.", Toast.LENGTH_SHORT).show();
+
+                        } catch (NullPointerException | IOException e) {
+                            Toast.makeText(NewTestActivity.this, "Error getting image key.", Toast.LENGTH_SHORT).show();
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        Toast.makeText(NewTestActivity.this, "Error while uploading image.", Toast.LENGTH_SHORT).show();
+                        Log.e("UPLOAD", "Error: " + response.code());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Toast.makeText(NewTestActivity.this, "Failed to upload image. Please try again.", Toast.LENGTH_SHORT).show();
+                    Log.e("UPLOAD", "Failed: " + t.getMessage());
+                }
+            });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
