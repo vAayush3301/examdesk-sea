@@ -1,8 +1,9 @@
 package av.sea.examdesk.model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Test {
+public class Test implements Serializable {
     private String testId;
     private String testName;
     private List<Question> questions;

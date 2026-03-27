@@ -1,6 +1,8 @@
 package av.sea.examdesk.model;
 
-public class Image {
+import java.io.Serializable;
+
+public class Image implements Serializable {
     private String imageKey, imageAlt;
 
     public Image(String imageKey, String imageAlt) {

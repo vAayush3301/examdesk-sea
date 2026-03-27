@@ -1,6 +1,8 @@
 package av.sea.examdesk.model;
 
-public class Question {
+import java.io.Serializable;
+
+public class Question implements Serializable {
     private String questionText;
     private String option1, option2, option3, option4;
     private String correctOption;
