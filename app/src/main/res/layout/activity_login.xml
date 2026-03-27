@@ -17,7 +17,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="20dp"
         android:contentDescription="Saurav Excellence Academy"
-        android:src="@drawable/sea_layer_list" />
+        android:src="@drawable/sea" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/login_header"
