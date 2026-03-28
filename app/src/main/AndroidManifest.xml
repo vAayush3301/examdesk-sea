@@ -15,6 +15,9 @@
         android:theme="@style/Theme.ExamDesk"
         tools:targetApi="31">
         <activity
+            android:name=".user.TestActivity"
+            android:exported="false" />
+        <activity
             android:name=".admin.NewTestActivity"
             android:exported="false" />
         <activity

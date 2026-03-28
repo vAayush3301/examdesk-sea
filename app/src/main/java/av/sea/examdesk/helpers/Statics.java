@@ -9,4 +9,25 @@ public class Statics {
     public static final String CREATE_TEST_ENDPOINT = "/api/test/create";
     public static final String DELETE_TEST_ENDPOINT = "/api/test/deleteTest";
     public static final String GET_TEST_RESULT_ENDPOINT = "/api/test/get_results";
+
+    public static String Test_Info = """
+            Exam Pattern:
+            • %d Questions (MCQs)
+            • +4 for correct, -1 for wrong
+            • No reattempt after submission
+                            
+            Duration:
+            • %d minutes
+            • Timer will auto-submit when time ends
+                            
+            Rules:
+            • Switching tabs or losing focus 3 times will auto-submit
+            • Minimizing the window counts as focus loss
+            • Do not refresh or close the application
+            • Use Do not disturb mode to avoid interruptions
+             
+            YOUR DEVICE MUST HAVE CONSTANT INTERNET CONNECTIVITY THROUGHOUT THE TEST
+                            
+            Click Continue to begin.
+            """;
 }
