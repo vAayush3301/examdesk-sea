@@ -6,21 +6,21 @@
     <item
         android:id="@+id/action_previous"
         android:icon="@drawable/previous"
-        android:iconTint="?attr/colorOnBackground"
+        android:iconTint="?attr/colorOnPrimary"
         android:title="Previous Question"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_next"
         android:icon="@drawable/next"
-        android:iconTint="?attr/colorOnBackground"
+        android:iconTint="?attr/colorOnPrimary"
         android:title="Next Question"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_add_images"
         android:icon="@drawable/image"
-        android:iconTint="?attr/colorOnBackground"
+        android:iconTint="?attr/colorOnPrimary"
         android:title="Add Images"
         app:showAsAction="ifRoom" />
 </menu>
