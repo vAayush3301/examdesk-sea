@@ -57,7 +57,7 @@ public class HomeFragment extends Fragment {
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
         List<Test> tests = new ArrayList<>();
-        adapter = new TestRecyclerAdapter(requireContext(), tests);
+        adapter = new TestRecyclerAdapter(requireContext(), tests, api);
         testRecycler.setAdapter(adapter);
 
         startPeriodicTask(api);

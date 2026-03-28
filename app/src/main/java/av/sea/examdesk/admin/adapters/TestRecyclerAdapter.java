@@ -7,35 +7,41 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textview.MaterialTextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import av.sea.examdesk.R;
 import av.sea.examdesk.admin.NewTestActivity;
 import av.sea.examdesk.helpers.ApiService;
+import av.sea.examdesk.helpers.ResultEvaluator;
 import av.sea.examdesk.helpers.Statics;
+import av.sea.examdesk.model.SubmitResponse;
 import av.sea.examdesk.model.Test;
+import av.sea.examdesk.model.UserResult;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapter.ViewHolder> {
     Context context;
     List<Test> tests;
+    private ApiService apiService;
 
-    public TestRecyclerAdapter(Context context, List<Test> tests) {
+    public TestRecyclerAdapter(Context context, List<Test> tests, ApiService apiService) {
         this.context = context;
         this.tests = tests;
+        this.apiService = apiService;
     }
 
     public void setTests(List<Test> tests) {
@@ -75,13 +81,6 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
                     .setView(confirmationText)
                     .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                     .setPositiveButton("Delete", (dialog, which) -> {
-                        Retrofit retrofit = new Retrofit.Builder()
-                                .baseUrl(Statics.BASE_URL)
-                                .addConverterFactory(GsonConverterFactory.create())
-                                .build();
-
-                        ApiService apiService = retrofit.create(ApiService.class);
-
                         Call<ResponseBody> deleteTestCall = apiService.deleteTest(Statics.CLIENT_ID, test);
                         deleteTestCall.enqueue(new Callback<>() {
                             @Override
@@ -100,6 +99,46 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
                         });
                     })
                     .show();
+        });
+
+        holder.resultTest.setOnClickListener(v -> {
+            View dialogView = LayoutInflater.from(context).inflate(R.layout.result_dialog, null);
+            RecyclerView resultRecycler = dialogView.findViewById(R.id.resultRecycler);
+            resultRecycler.setLayoutManager(new LinearLayoutManager(context));
+
+            final List<SubmitResponse>[] responses = new List[]{new ArrayList<>()};
+            final List<UserResult>[] results = new List[]{new ResultEvaluator(responses[0]).getTotalResult()};
+
+            ResultAdapter resultAdapter = new ResultAdapter(context, results[0]);
+            resultRecycler.setAdapter(resultAdapter);
+
+            Call<List<SubmitResponse>> getResponseCall = apiService.getTestResult(test.getTestId(), Statics.CLIENT_ID);
+            getResponseCall.enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<List<SubmitResponse>> call, @NonNull Response<List<SubmitResponse>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        responses[0] = response.body();
+                        results[0] = new ResultEvaluator(responses[0]).getTotalResult();
+                        resultAdapter.setResults(results[0]);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<SubmitResponse>> call, @NonNull Throwable t) {
+                    Toast.makeText(context, "Failed to fetch results.", Toast.LENGTH_SHORT).show();
+                    Log.e("RESULTS", "Failed ot fetch results: " + t.getMessage());
+                }
+            });
+
+
+            new MaterialAlertDialogBuilder(context)
+                    .setTitle("Results")
+                    .setView(dialogView)
+                    .setIcon(R.drawable.sea)
+                    .setNegativeButton("Close", (dialog, which) -> dialog.dismiss())
+                    .setPositiveButton("Export", (dialog, which) -> {
+
+                    }).show();
         });
     }
 

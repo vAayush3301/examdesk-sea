@@ -8,4 +8,5 @@ public class Statics {
     public static final String DELETE_IMAGE_ENDPOINT = "/api/image";
     public static final String CREATE_TEST_ENDPOINT = "/api/test/create";
     public static final String DELETE_TEST_ENDPOINT = "/api/test/deleteTest";
+    public static final String GET_TEST_RESULT_ENDPOINT = "/api/test/get_results";
 }

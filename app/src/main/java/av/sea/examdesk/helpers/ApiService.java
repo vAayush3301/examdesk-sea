@@ -2,6 +2,7 @@ package av.sea.examdesk.helpers;
 
 import java.util.List;
 
+import av.sea.examdesk.model.SubmitResponse;
 import av.sea.examdesk.model.Test;
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
@@ -30,4 +31,7 @@ public interface ApiService {
 
     @POST(Statics.DELETE_TEST_ENDPOINT)
     Call<ResponseBody> deleteTest(@Query("clientId") String clientId, @Body Test test);
+
+    @GET(Statics.GET_TEST_RESULT_ENDPOINT)
+    Call<List<SubmitResponse>> getTestResult(@Query("testId") String testId, @Query("clientId") String clientId);
 }
