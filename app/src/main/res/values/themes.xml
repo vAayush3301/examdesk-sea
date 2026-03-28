@@ -49,6 +49,8 @@
         <item name="colorSurfaceContainerHighest">@color/md_theme_surfaceContainerHighest</item>
 
         <item name="fontFamily">@font/open_sans</item>
+
+        <item name="android:windowFullscreen">true</item>
     </style>
 
     <style name="Theme.ExamDesk" parent="Base.Theme.ExamDesk" />
