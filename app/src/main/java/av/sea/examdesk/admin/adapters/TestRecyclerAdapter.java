@@ -1,8 +1,12 @@
 package av.sea.examdesk.admin.adapters;
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +21,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textview.MaterialTextView;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -138,8 +144,55 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
                     .setNegativeButton("Close", (dialog, which) -> dialog.dismiss())
                     .setPositiveButton("Export", (dialog, which) -> {
 
+                        ContentValues values = new ContentValues();
+                        values.put(MediaStore.MediaColumns.DISPLAY_NAME,
+                                "results_" + test.getTestName().replace(" ", "-") + "_" + System.currentTimeMillis() + ".csv");
+                        values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+                        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                        Uri uri = context.getContentResolver()
+                                .insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+
+                        if (uri == null) {
+                            Toast.makeText(context, "Failed to create file.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        try (OutputStream os = context.getContentResolver().openOutputStream(uri)) {
+
+                            if (os == null) {
+                                Toast.makeText(context, "Failed to open file.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            os.write("Username,Attempted,Correct,Marks Obtained\n".getBytes());
+                            for (UserResult result : results[0]) {
+                                String row = escape(result.getUserId()) + "," +
+                                        result.getNumAttempted() + "," +
+                                        result.getNumCorrect() + "," +
+                                        result.getMarksObtained() + "\n";
+
+                                os.write(row.getBytes());
+                            }
+                            os.flush();
+
+                            Toast.makeText(context, "Exported to Downloads", Toast.LENGTH_SHORT).show();
+                        } catch (IOException e) {
+                            Toast.makeText(context, "Error while exporting data.", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
                     }).show();
         });
+    }
+
+    private String escape(String value) {
+        if (value == null) return "";
+
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            value = value.replace("\"", "\"\"");
+            return "\"" + value + "\"";
+        }
+        return value;
     }
 
     @Override
