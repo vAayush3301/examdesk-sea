@@ -42,7 +42,7 @@ import retrofit2.Response;
 public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapter.ViewHolder> {
     Context context;
     List<Test> tests;
-    private ApiService apiService;
+    private final ApiService apiService;
 
     public TestRecyclerAdapter(Context context, List<Test> tests, ApiService apiService) {
         this.context = context;
