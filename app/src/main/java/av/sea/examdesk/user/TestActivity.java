@@ -1,6 +1,7 @@
 package av.sea.examdesk.user;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -20,21 +21,33 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textview.MaterialTextView;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
 import av.sea.examdesk.R;
+import av.sea.examdesk.helpers.ApiService;
+import av.sea.examdesk.helpers.Statics;
 import av.sea.examdesk.helpers.TextImageRenderer;
 import av.sea.examdesk.model.Image;
 import av.sea.examdesk.model.Question;
 import av.sea.examdesk.model.Response;
+import av.sea.examdesk.model.SubmitResponse;
 import av.sea.examdesk.model.Test;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class TestActivity extends AppCompatActivity {
+    private String USER_ID = "USER_ID";
     private Test test;
     private List<Image> imageKeys = new ArrayList<>();
     private List<Question> questions = new ArrayList<>();
@@ -134,12 +147,17 @@ public class TestActivity extends AppCompatActivity {
             }
         });
 
+        ExtendedFloatingActionButton submitBtn = findViewById(R.id.submitResponse);
+        submitBtn.setOnClickListener(v -> submitExam());
+
         new CountDownTimer(1000L * 60 * test.getDuration(), 1000) {
 
             @Override
             public void onFinish() {
                 topAppBar.setSubtitle("Time Over");
+                submitExam();
                 stopLockTask();
+                finish();
             }
 
             @SuppressLint("DefaultLocale")
@@ -208,9 +226,7 @@ public class TestActivity extends AppCompatActivity {
         Log.i("TEST", source + " | Violations: " + focusViolations);
 
         if (focusViolations >= 3) {
-            // submitExam();
-            finish();
-            stopLockTask();
+            submitExam();
         }
     }
 
@@ -321,7 +337,55 @@ public class TestActivity extends AppCompatActivity {
         toggleGroup.check(o.getId());
     }
 
-    public void clearSelection() {
+    private void clearSelection() {
         toggleGroup.clearChecked();
+    }
+
+    private void submitExam() {
+        saveResponse(currentQuestion);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Statics.BASE_URL)
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiService apiService = retrofit.create(ApiService.class);
+
+        String date = LocalDate.now()
+                .format(DateTimeFormatter.ofPattern("yyyy_MM_dd"));
+        List<Response> responseResponses = new ArrayList<>(responses.values());
+        SubmitResponse submitResponse = new SubmitResponse(test.getTestId(), USER_ID, date, responseResponses);
+        List<SubmitResponse> submitResponses = new ArrayList<>();
+        submitResponses.add(submitResponse);
+
+        Call<String> submitResponseCall = apiService.submitResponse(Statics.CLIENT_ID, submitResponses);
+        submitResponseCall.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<String> call, @NonNull retrofit2.Response<String> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(TestActivity.this, "Your response has been submitted.", Toast.LENGTH_SHORT).show();
+                    stopLockTask();
+                    finish();
+                } else {
+                    Toast.makeText(TestActivity.this, "Failed to submit your response.", Toast.LENGTH_SHORT).show();
+                    Log.i("SUBMIT RESPONSE", "Response Status: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+                Toast.makeText(TestActivity.this, "Failed to submit your response.", Toast.LENGTH_SHORT).show();
+                Log.e("SUBMIT RESPONSE", "Response Status: " + t.getMessage());
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        SharedPreferences prefs = getSharedPreferences("ExamDesk", MODE_PRIVATE);
+        USER_ID = prefs.getString("username", "USER_ID");
     }
 }

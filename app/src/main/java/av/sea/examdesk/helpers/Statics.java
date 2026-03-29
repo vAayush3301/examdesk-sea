@@ -10,6 +10,7 @@ public class Statics {
     public static final String DELETE_TEST_ENDPOINT = "/api/test/deleteTest";
     public static final String GET_TEST_RESULT_ENDPOINT = "/api/test/get_results";
     public static final String GET_IMAGE_LINK_URL_ENDPOINT = "/api/image";
+    public static final String SUBMIT_RESPONSE_ENDPOINT = "/api/test/submitResponse";
 
     public static String Test_Info = """
             Exam Pattern:
@@ -27,7 +28,7 @@ public class Statics {
             • Do not refresh or close the application
             • Use Do not disturb mode to avoid interruptions
              
-            YOUR DEVICE MUST HAVE CONSTANT INTERNET CONNECTIVITY THROUGHOUT THE TEST
+            YOUR DEVICE MUST HAVE INTERNET CONNECTIVITY THROUGHOUT THE TEST
                             
             Click Continue to begin.
             """;
