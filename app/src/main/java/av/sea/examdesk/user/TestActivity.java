@@ -17,24 +17,29 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import av.sea.examdesk.R;
 import av.sea.examdesk.helpers.TextImageRenderer;
 import av.sea.examdesk.model.Image;
 import av.sea.examdesk.model.Question;
+import av.sea.examdesk.model.Response;
 import av.sea.examdesk.model.Test;
 
 public class TestActivity extends AppCompatActivity {
     private Test test;
     private List<Image> imageKeys = new ArrayList<>();
     private List<Question> questions = new ArrayList<>();
+
+    private HashMap<Integer, Response> responses = new HashMap<>();
 
     private int focusViolations = 0;
     private long lastViolationTime = 0;
@@ -82,6 +87,7 @@ public class TestActivity extends AppCompatActivity {
         questionCount = findViewById(R.id.questionCount);
         questionText = findViewById(R.id.questionText);
 
+        toggleGroup = findViewById(R.id.toggleGroup);
         o1 = findViewById(R.id.btn1);
         o2 = findViewById(R.id.btn2);
         o3 = findViewById(R.id.btn3);
@@ -109,6 +115,24 @@ public class TestActivity extends AppCompatActivity {
         topAppBar = findViewById(R.id.topAppBar);
         topAppBar.setTitle(test.getTestName());
         loadQuestion(1);
+
+        BottomAppBar bottomAppBar = findViewById(R.id.bottomAppBar);
+        bottomAppBar.replaceMenu(R.menu.test_navigation_menu);
+        bottomAppBar.setContentInsetStartWithNavigation(16);
+        bottomAppBar.setContentInsetEndWithActions(16);
+
+        bottomAppBar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_next) {
+                handleNext();
+                return true;
+            } else if (item.getItemId() == R.id.action_previous) {
+                handlePrevious();
+                return true;
+            } else {
+                clearSelection();
+                return true;
+            }
+        });
 
         new CountDownTimer(1000L * 60 * test.getDuration(), 1000) {
 
@@ -234,15 +258,70 @@ public class TestActivity extends AppCompatActivity {
             Toast.makeText(this, "This is the first question.", Toast.LENGTH_SHORT).show();
             return;
         }
-        currentQuestion--;
 
+        saveResponse(currentQuestion);
+        currentQuestion--;
         loadQuestion(currentQuestion);
+        loadResponse(currentQuestion);
     }
 
     private void handleNext() {
-//        if (!saveQuestion()) return;
+        if (currentQuestion == questions.size()) {
+            Toast.makeText(this, "This is the last question.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        saveResponse(currentQuestion);
         currentQuestion++;
         loadQuestion(currentQuestion);
+        loadResponse(currentQuestion);
+    }
+
+    private void saveResponse(int key) {
+        int selected = toggleGroup.getCheckedButtonId();
+
+        int selectedId = -1;
+        if (selected == R.id.btn1) {
+            selectedId = 1;
+        } else if (selected == R.id.btn2) {
+            selectedId = 2;
+        } else if (selected == R.id.btn3) {
+            selectedId = 3;
+        } else if (selected == R.id.btn4) {
+            selectedId = 4;
+        }
+
+        Response response = new Response(questions.get(key - 1), selectedId);
+        responses.put(key - 1, response);
+    }
+
+    private void loadResponse(int currentCount) {
+        Response response;
+        if (currentCount > responses.size()) {
+            clearSelection();
+            return;
+        } else {
+            response = responses.get(currentCount - 1);
+            assert response != null;
+            if (response.getResponseCode() == -1) {
+                clearSelection();
+                return;
+            }
+        }
+
+        int selected = response.getResponseCode();
+        MaterialButton o = null;
+
+        if (selected == 1) o = o1;
+        else if (selected == 2) o = o2;
+        else if (selected == 3) o = o3;
+        else if (selected == 4) o = o4;
+
+        if (o == null) return;
+        toggleGroup.check(o.getId());
+    }
+
+    public void clearSelection() {
+        toggleGroup.clearChecked();
     }
 }
