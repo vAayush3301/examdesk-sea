@@ -1,6 +1,7 @@
 [versions]
 agp = "8.4.0"
 appcompat = "1.6.1"
+glide = "4.16.0"
 material = "1.11.0"
 activity = "1.9.0"
 constraintlayout = "2.1.4"
@@ -10,6 +11,7 @@ retrofit = "2.9.0"
 [libraries]
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }

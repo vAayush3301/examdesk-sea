@@ -34,4 +34,7 @@ public interface ApiService {
 
     @GET(Statics.GET_TEST_RESULT_ENDPOINT)
     Call<List<SubmitResponse>> getTestResult(@Query("testId") String testId, @Query("clientId") String clientId);
+
+    @GET(Statics.GET_IMAGE_LINK_URL_ENDPOINT)
+    Call<ResponseBody> getImageUrl(@Query("key") String key);
 }

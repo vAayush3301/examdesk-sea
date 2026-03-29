@@ -9,6 +9,7 @@ public class Statics {
     public static final String CREATE_TEST_ENDPOINT = "/api/test/create";
     public static final String DELETE_TEST_ENDPOINT = "/api/test/deleteTest";
     public static final String GET_TEST_RESULT_ENDPOINT = "/api/test/get_results";
+    public static final String GET_IMAGE_LINK_URL_ENDPOINT = "/api/image";
 
     public static String Test_Info = """
             Exam Pattern:

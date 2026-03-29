@@ -10,23 +10,44 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.textview.MaterialTextView;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import av.sea.examdesk.R;
+import av.sea.examdesk.helpers.TextImageRenderer;
+import av.sea.examdesk.model.Image;
+import av.sea.examdesk.model.Question;
 import av.sea.examdesk.model.Test;
 
 public class TestActivity extends AppCompatActivity {
     private Test test;
+    private List<Image> imageKeys = new ArrayList<>();
+    private List<Question> questions = new ArrayList<>();
 
     private int focusViolations = 0;
     private long lastViolationTime = 0;
 
     private MaterialToolbar topAppBar;
+
+    private MaterialTextView questionCount, questionText;
+    private MaterialButtonToggleGroup toggleGroup;
+    private MaterialButton o1, o2, o3, o4;
+
+    private int currentQuestion = 1;
+
+    private TextImageRenderer renderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +79,14 @@ public class TestActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_SECURE
         );
 
+        questionCount = findViewById(R.id.questionCount);
+        questionText = findViewById(R.id.questionText);
+
+        o1 = findViewById(R.id.btn1);
+        o2 = findViewById(R.id.btn2);
+        o3 = findViewById(R.id.btn3);
+        o4 = findViewById(R.id.btn4);
+
         if (getIntent() != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 test = getIntent().getSerializableExtra("test", Test.class);
@@ -71,8 +100,15 @@ public class TestActivity extends AppCompatActivity {
             }
         }
 
+        imageKeys = test.getImageKeys();
+        questions = test.getQuestions();
+        Collections.shuffle(questions);
+
+        renderer = new TextImageRenderer();
+
         topAppBar = findViewById(R.id.topAppBar);
         topAppBar.setTitle(test.getTestName());
+        loadQuestion(1);
 
         new CountDownTimer(1000L * 60 * test.getDuration(), 1000) {
 
@@ -155,14 +191,58 @@ public class TestActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("violations", focusViolations);
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         focusViolations = savedInstanceState.getInt("violations", 0);
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void loadQuestion(int key) {
+        currentQuestion = key;
+
+        if (key > questions.size() || key <= 0) {
+            return;
+        }
+
+        Question question = questions.get(currentQuestion - 1);
+
+        String qText = question.getQuestionText();
+        String option1 = question.getOption1();
+        String option2 = question.getOption2();
+        String option3 = question.getOption3();
+        String option4 = question.getOption4();
+
+        questionText.setText(question.getQuestionText());
+        o1.setText(option1);
+        o2.setText(option2);
+        o3.setText(option3);
+        o4.setText(option4);
+
+        questionCount.setText(currentQuestion + ".");
+
+        renderer.setImage(questionText, qText, imageKeys, this);
+    }
+
+    private void handlePrevious() {
+        if (currentQuestion == 1) {
+            Toast.makeText(this, "This is the first question.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        currentQuestion--;
+
+        loadQuestion(currentQuestion);
+    }
+
+    private void handleNext() {
+//        if (!saveQuestion()) return;
+
+        currentQuestion++;
+        loadQuestion(currentQuestion);
     }
 }
