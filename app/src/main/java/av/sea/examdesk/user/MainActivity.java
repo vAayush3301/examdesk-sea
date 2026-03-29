@@ -1,5 +1,7 @@
 package av.sea.examdesk.user;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -11,9 +13,12 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import av.sea.examdesk.LoginActivity;
 import av.sea.examdesk.R;
 import av.sea.examdesk.helpers.ApiService;
 import av.sea.examdesk.helpers.Statics;
@@ -56,6 +61,24 @@ public class MainActivity extends AppCompatActivity {
         testRecycler.setAdapter(adapter);
 
         startPeriodicTask(api);
+
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        topAppBar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.logout) {
+                SharedPreferences preferences = getSharedPreferences("ExamDesk", MODE_PRIVATE);
+                SharedPreferences.Editor prefsEditor = preferences.edit();
+                prefsEditor.clear();
+                prefsEditor.apply();
+                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                finish();
+                return true;
+            } else if (item.getItemId() == R.id.about) {
+                //TODO create about page
+                return true;
+            }
+
+            return false;
+        });
     }
 
     private void startPeriodicTask(ApiService api) {

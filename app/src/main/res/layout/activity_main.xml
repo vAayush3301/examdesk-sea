@@ -18,7 +18,8 @@
             android:layout_height="?attr/actionBarSize"
             android:fitsSystemWindows="true"
             app:title="ExamDesk"
-            app:titleCentered="true" />
+            app:titleCentered="true"
+            app:menu="@menu/drawer_menu"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

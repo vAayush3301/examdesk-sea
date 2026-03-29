@@ -35,6 +35,7 @@
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav"
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
