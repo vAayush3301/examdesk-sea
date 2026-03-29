@@ -68,7 +68,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="10dp"
                 app:selectionRequired="true"
                 app:singleSelection="true">
 
@@ -77,6 +76,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:padding="10dp"
                     android:text="Option 1" />
 
                 <com.google.android.material.button.MaterialButton
@@ -84,6 +85,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:padding="10dp"
                     android:text="Option 2" />
 
                 <com.google.android.material.button.MaterialButton
@@ -91,6 +94,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:padding="10dp"
                     android:text="Option 3" />
 
                 <com.google.android.material.button.MaterialButton
@@ -98,6 +103,8 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:padding="10dp"
                     android:text="Option 4" />
 
             </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -111,7 +118,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:menu="@menu/test_navigation_menu"/>
+        app:menu="@menu/test_navigation_menu" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/submitResponse"
