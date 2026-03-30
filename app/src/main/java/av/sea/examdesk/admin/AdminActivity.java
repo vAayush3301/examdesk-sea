@@ -3,10 +3,9 @@ package av.sea.examdesk.admin;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.MenuItem;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -21,9 +20,24 @@ import com.google.android.material.navigation.NavigationView;
 import av.sea.examdesk.AboutActivity;
 import av.sea.examdesk.LoginActivity;
 import av.sea.examdesk.R;
-import av.sea.examdesk.user.MainActivity;
 
 public class AdminActivity extends AppCompatActivity {
+    OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+        private long lastBackPressed = 0;
+
+        @Override
+        public void handleOnBackPressed() {
+            long now = System.currentTimeMillis();
+
+            if (now - lastBackPressed < 2000) {
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+            } else {
+                lastBackPressed = now;
+                Toast.makeText(getApplicationContext(), "Press again to exit", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,5 +89,7 @@ public class AdminActivity extends AppCompatActivity {
 
             return false;
         });
+
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 }

@@ -3,6 +3,7 @@ package av.sea.examdesk.admin;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import av.sea.examdesk.R;
 import av.sea.examdesk.admin.adapters.TestRecyclerAdapter;
@@ -29,9 +31,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeFragment extends Fragment {
     private final Handler handler = new Handler();
-    private Runnable periodicRunnable;
-
+    Parcelable state;
     private TestRecyclerAdapter adapter;
+
+    private RecyclerView testRecycler;
 
     public HomeFragment() {
         super(R.layout.fragment_home);
@@ -53,7 +56,7 @@ public class HomeFragment extends Fragment {
 
         ApiService api = retrofit.create(ApiService.class);
 
-        RecyclerView testRecycler = view.findViewById(R.id.testList);
+        testRecycler = view.findViewById(R.id.testList);
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
         List<Test> tests = new ArrayList<>();
@@ -67,7 +70,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void startPeriodicTask(ApiService api) {
-        periodicRunnable = new Runnable() {
+        Runnable periodicRunnable = new Runnable() {
             @Override
             public void run() {
                 api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
@@ -89,5 +92,19 @@ public class HomeFragment extends Fragment {
         };
 
         handler.post(periodicRunnable);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        state = Objects.requireNonNull(testRecycler.getLayoutManager()).onSaveInstanceState();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (state != null) {
+            Objects.requireNonNull(testRecycler.getLayoutManager()).onRestoreInstanceState(state);
+        }
     }
 }
