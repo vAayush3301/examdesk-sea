@@ -1,15 +1,16 @@
 package av.sea.examdesk.service;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -51,14 +52,30 @@ public class MessageService extends FirebaseMessagingService {
                 PendingIntent.FLAG_IMMUTABLE
         );
 
+        NotificationCompat.BigTextStyle style = new NotificationCompat.BigTextStyle()
+                .bigText(body)
+                .setBigContentTitle(title)
+                .setSummaryText("ExamDesk");
+
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.sea);
+
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true);
+
+        int color = typedValue.data;
+
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this, "default_channel")
                         .setSmallIcon(R.drawable.sea)
                         .setContentTitle(title)
                         .setContentText(body)
                         .setAutoCancel(true)
+                        .setStyle(style)
                         .setContentIntent(pendingIntent)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH);
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .setLargeIcon(largeIcon)
+                        .setColor(color);
 
         NotificationManagerCompat manager =
                 NotificationManagerCompat.from(this);
