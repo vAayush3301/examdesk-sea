@@ -1,7 +1,12 @@
 package av.sea.examdesk.user;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -56,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+       createNotificationChannel(this);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Statics.BASE_URL)
@@ -138,9 +145,53 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
                 refreshLayout.setRefreshing(false);
                 Log.e("LOAD TEST", "FAILED TO LOAD TEST: " + t.getMessage());
-                Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                 t.printStackTrace();
             }
         });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults, int deviceId) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults, deviceId);
+        if (requestCode == 101) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                Log.d("NOTIFICATIONS", "Permission granted");
+            } else {
+                Log.d("NOTIFICATIONS", "Permission denied");
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        101
+                );
+            }
+        }
+    }
+
+    public void createNotificationChannel(Context context) {
+        NotificationChannel channel = new NotificationChannel(
+                "default_channel",
+                "General Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+        );
+
+        channel.setDescription("All general notifications");
+
+        NotificationManager manager =
+                context.getSystemService(NotificationManager.class);
+
+        manager.createNotificationChannel(channel);
     }
 }

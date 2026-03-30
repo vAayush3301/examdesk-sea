@@ -11,6 +11,7 @@ public class Statics {
     public static final String GET_TEST_RESULT_ENDPOINT = "/api/test/get_results";
     public static final String GET_IMAGE_LINK_URL_ENDPOINT = "/api/image";
     public static final String SUBMIT_RESPONSE_ENDPOINT = "/api/test/submitResponse";
+    public static final String CREATE_USER_TOKEN_ENDPOINT = "/api/user/createUser";
 
     public static String Test_Info = """
             Exam Pattern:

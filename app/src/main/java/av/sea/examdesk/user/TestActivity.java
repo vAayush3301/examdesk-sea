@@ -40,6 +40,7 @@ import av.sea.examdesk.model.Question;
 import av.sea.examdesk.model.Response;
 import av.sea.examdesk.model.SubmitResponse;
 import av.sea.examdesk.model.Test;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
@@ -359,10 +360,10 @@ public class TestActivity extends AppCompatActivity {
         List<SubmitResponse> submitResponses = new ArrayList<>();
         submitResponses.add(submitResponse);
 
-        Call<String> submitResponseCall = apiService.submitResponse(Statics.CLIENT_ID, submitResponses);
+        Call<ResponseBody> submitResponseCall = apiService.submitResponse(Statics.CLIENT_ID, submitResponses);
         submitResponseCall.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<String> call, @NonNull retrofit2.Response<String> response) {
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull retrofit2.Response<ResponseBody> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Toast.makeText(TestActivity.this, "Your response has been submitted.", Toast.LENGTH_SHORT).show();
                     stopLockTask();
@@ -374,7 +375,7 @@ public class TestActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(@NonNull Call<String> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 Toast.makeText(TestActivity.this, "Failed to submit your response.", Toast.LENGTH_SHORT).show();
                 Log.e("SUBMIT RESPONSE", "Response Status: " + t.getMessage());
             }

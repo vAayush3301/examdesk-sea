@@ -123,7 +123,6 @@ public class HomeFragment extends Fragment {
             public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
                 refreshLayout.setRefreshing(false);
                 Log.e("LOAD TEST", "FAILED TO LOAD TEST: " + t.getMessage());
-                Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
                 t.printStackTrace();
             }
         });

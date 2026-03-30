@@ -4,6 +4,7 @@ import java.util.List;
 
 import av.sea.examdesk.model.SubmitResponse;
 import av.sea.examdesk.model.Test;
+import av.sea.examdesk.model.User;
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -39,5 +40,8 @@ public interface ApiService {
     Call<ResponseBody> getImageUrl(@Query("key") String key);
 
     @POST(Statics.SUBMIT_RESPONSE_ENDPOINT)
-    Call<String> submitResponse(@Query("clientId") String clientId, @Body List<SubmitResponse> responses);
+    Call<ResponseBody> submitResponse(@Query("clientId") String clientId, @Body List<SubmitResponse> responses);
+
+    @POST(Statics.CREATE_USER_TOKEN_ENDPOINT)
+    Call<ResponseBody> createUser(@Query("clientId") String clientId, @Body User user);
 }
