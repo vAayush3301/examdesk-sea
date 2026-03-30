@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class HomeFragment extends Fragment {
     Parcelable state;
     private TestRecyclerAdapter adapter;
 
+    private ShimmerFrameLayout shimmerLayout;
     private SwipeRefreshLayout refreshLayout;
     private RecyclerView testRecycler;
     private LinearLayout noDataLayout;
@@ -62,6 +64,7 @@ public class HomeFragment extends Fragment {
 
         ApiService api = retrofit.create(ApiService.class);
 
+        shimmerLayout = view.findViewById(R.id.shimmerLayout);
         refreshLayout = view.findViewById(R.id.swipeRefresh);
         noDataLayout = view.findViewById(R.id.noDataLayout);
         testRecycler = view.findViewById(R.id.testList);
@@ -71,6 +74,8 @@ public class HomeFragment extends Fragment {
         adapter = new TestRecyclerAdapter(requireContext(), tests, api);
         testRecycler.setAdapter(adapter);
 
+        refreshLayout.setVisibility(View.GONE);
+        shimmerLayout.startShimmer();
         startPeriodicTask(api);
 
         ExtendedFloatingActionButton newTestButton = view.findViewById(R.id.create_new_test);
@@ -98,6 +103,8 @@ public class HomeFragment extends Fragment {
             public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
                 if (response.isSuccessful()) {
                     List<Test> tests = response.body();
+                    shimmerLayout.stopShimmer();
+                    shimmerLayout.setVisibility(View.GONE);
                     if (tests == null || tests.isEmpty()) {
                         refreshLayout.setVisibility(View.GONE);
                         noDataLayout.setVisibility(View.VISIBLE);

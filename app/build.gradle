@@ -35,6 +35,7 @@ dependencies {
 
     implementation libs.core.splashscreen
     implementation libs.swiperefreshlayout
+    implementation libs.shimmer
 
     implementation libs.appcompat
     implementation libs.material

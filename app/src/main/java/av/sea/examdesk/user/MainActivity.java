@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TestRecyclerAdapter adapter;
 
+    private ShimmerFrameLayout shimmerLayout;
     private SwipeRefreshLayout refreshLayout;
     private LinearLayout noDataLayout;
     private RecyclerView testRecycler;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         ApiService api = retrofit.create(ApiService.class);
 
+        shimmerLayout = findViewById(R.id.shimmerLayout);
         refreshLayout = findViewById(R.id.swipeRefresh);
         noDataLayout = findViewById(R.id.noDataLayout);
         testRecycler = findViewById(R.id.testListUser);
@@ -71,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
         adapter = new TestRecyclerAdapter(this, tests);
         testRecycler.setAdapter(adapter);
 
+        refreshLayout.setVisibility(View.GONE);
+        shimmerLayout.startShimmer();
         startPeriodicTask(api);
 
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
@@ -113,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
                 if (response.isSuccessful()) {
                     List<Test> tests = response.body();
+                    shimmerLayout.stopShimmer();
+                    shimmerLayout.setVisibility(View.GONE);
                     if (tests == null || tests.isEmpty()) {
                         refreshLayout.setVisibility(View.GONE);
                         noDataLayout.setVisibility(View.VISIBLE);
