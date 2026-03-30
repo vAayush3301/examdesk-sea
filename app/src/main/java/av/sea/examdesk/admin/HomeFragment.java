@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,6 +36,7 @@ public class HomeFragment extends Fragment {
     private TestRecyclerAdapter adapter;
 
     private RecyclerView testRecycler;
+    private LinearLayout noDataLayout;
 
     public HomeFragment() {
         super(R.layout.fragment_home);
@@ -56,6 +58,7 @@ public class HomeFragment extends Fragment {
 
         ApiService api = retrofit.create(ApiService.class);
 
+        noDataLayout = view.findViewById(R.id.noDataLayout);
         testRecycler = view.findViewById(R.id.testList);
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
@@ -77,7 +80,15 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
                         if (response.isSuccessful()) {
-                            adapter.setTests(response.body());
+                            List<Test> tests = response.body();
+                            if (tests == null || tests.isEmpty()) {
+                                noDataLayout.setVisibility(View.VISIBLE);
+                                testRecycler.setVisibility(View.GONE);
+                            } else {
+                                noDataLayout.setVisibility(View.GONE);
+                                testRecycler.setVisibility(View.VISIBLE);
+                                adapter.setTests(tests);
+                            }
                         }
                     }
 
@@ -87,7 +98,7 @@ public class HomeFragment extends Fragment {
                     }
                 });
 
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, 120000);
             }
         };
 

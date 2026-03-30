@@ -30,6 +30,33 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <LinearLayout
+            android:id="@+id/noDataLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:padding="50dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/emptyListImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:contentDescription="No Tests Created"
+                android:src="@drawable/no_data_found" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/emptyListText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="No Tests Created"
+                android:textSize="24sp" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
