@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ExamDesk</string>
     <string name="open">Open Navigation Drawer</string>
-    <string name="close">Close Navigation Drawer</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="close">Close Navigation Drawer</string>\
+    <string name="info_text">ExamDesk is a secure Computer-Based Testing (CBT) app designed to conduct exams with minimal distraction.\n\nFeatures:\n• Fullscreen exam mode\n• Timer with auto-submit\n• Interactive dashboard</string>
+    <string name="privacy">ExamDesk does not collect, store, or share any personal user data except the information entered by the user during exams. This data is used solely for exam functionality and is not shared with third parties.</string>
 </resources>

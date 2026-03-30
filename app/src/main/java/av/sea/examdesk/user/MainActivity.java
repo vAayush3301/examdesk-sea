@@ -18,6 +18,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 import java.util.ArrayList;
 import java.util.List;
 
+import av.sea.examdesk.AboutActivity;
 import av.sea.examdesk.LoginActivity;
 import av.sea.examdesk.R;
 import av.sea.examdesk.helpers.ApiService;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 return true;
             } else if (item.getItemId() == R.id.about) {
-                //TODO create about page
+                startActivity(new Intent(MainActivity.this, AboutActivity.class));
                 return true;
             }
 

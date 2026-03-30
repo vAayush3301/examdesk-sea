@@ -18,6 +18,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.color.DynamicColors;
 import com.google.android.material.navigation.NavigationView;
 
+import av.sea.examdesk.AboutActivity;
 import av.sea.examdesk.LoginActivity;
 import av.sea.examdesk.R;
 import av.sea.examdesk.user.MainActivity;
@@ -68,7 +69,7 @@ public class AdminActivity extends AppCompatActivity {
                 finish();
                 return true;
             } else if (menuItem.getItemId() == R.id.about) {
-                //TODO create about page
+                startActivity(new Intent(AdminActivity.this, AboutActivity.class));
                 return true;
             }
 
