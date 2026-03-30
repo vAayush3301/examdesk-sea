@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +16,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -33,9 +38,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private final Handler handler = new Handler();
-    private Runnable periodicRunnable;
 
     private TestRecyclerAdapter adapter;
+
+    private SwipeRefreshLayout refreshLayout;
+    private LinearLayout noDataLayout;
+    private RecyclerView testRecycler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +62,9 @@ public class MainActivity extends AppCompatActivity {
 
         ApiService api = retrofit.create(ApiService.class);
 
-        RecyclerView testRecycler = findViewById(R.id.testListUser);
+        refreshLayout = findViewById(R.id.swipeRefresh);
+        noDataLayout = findViewById(R.id.noDataLayout);
+        testRecycler = findViewById(R.id.testListUser);
         testRecycler.setLayoutManager(new LinearLayoutManager(this));
 
         List<Test> tests = new ArrayList<>();
@@ -80,30 +90,50 @@ public class MainActivity extends AppCompatActivity {
 
             return false;
         });
+
+        refreshLayout.setOnRefreshListener(() -> loadData(api));
     }
 
     private void startPeriodicTask(ApiService api) {
-        periodicRunnable = new Runnable() {
+        Runnable periodicRunnable = new Runnable() {
             @Override
             public void run() {
-                api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
-                    @Override
-                    public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
-                        if (response.isSuccessful()) {
-                            adapter.setTests(response.body());
-                        }
-                    }
+                loadData(api);
 
-                    @Override
-                    public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
-
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, 120000);
             }
         };
 
         handler.post(periodicRunnable);
+    }
+
+    private void loadData(ApiService api) {
+        api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
+                if (response.isSuccessful()) {
+                    List<Test> tests = response.body();
+                    if (tests == null || tests.isEmpty()) {
+                        refreshLayout.setVisibility(View.GONE);
+                        noDataLayout.setVisibility(View.VISIBLE);
+                        testRecycler.setVisibility(View.GONE);
+                    } else {
+                        refreshLayout.setVisibility(View.VISIBLE);
+                        noDataLayout.setVisibility(View.GONE);
+                        testRecycler.setVisibility(View.VISIBLE);
+                        adapter.setTests(tests);
+                    }
+                }
+                refreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
+                refreshLayout.setRefreshing(false);
+                Log.e("LOAD TEST", "FAILED TO LOAD TEST: " + t.getMessage());
+                Toast.makeText(MainActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                t.printStackTrace();
+            }
+        });
     }
 }

@@ -8,6 +8,7 @@ activity = "1.9.0"
 constraintlayout = "2.1.4"
 coreKtx = "1.13.1"
 retrofit = "2.9.0"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -21,6 +22,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -4,14 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
@@ -35,6 +38,7 @@ public class HomeFragment extends Fragment {
     Parcelable state;
     private TestRecyclerAdapter adapter;
 
+    private SwipeRefreshLayout refreshLayout;
     private RecyclerView testRecycler;
     private LinearLayout noDataLayout;
 
@@ -58,6 +62,7 @@ public class HomeFragment extends Fragment {
 
         ApiService api = retrofit.create(ApiService.class);
 
+        refreshLayout = view.findViewById(R.id.swipeRefresh);
         noDataLayout = view.findViewById(R.id.noDataLayout);
         testRecycler = view.findViewById(R.id.testList);
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
@@ -70,39 +75,51 @@ public class HomeFragment extends Fragment {
 
         ExtendedFloatingActionButton newTestButton = view.findViewById(R.id.create_new_test);
         newTestButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), NewTestActivity.class)));
+
+        refreshLayout.setOnRefreshListener(() -> loadData(api));
     }
 
     private void startPeriodicTask(ApiService api) {
         Runnable periodicRunnable = new Runnable() {
             @Override
             public void run() {
-                api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
-                    @Override
-                    public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
-                        if (response.isSuccessful()) {
-                            List<Test> tests = response.body();
-                            if (tests == null || tests.isEmpty()) {
-                                noDataLayout.setVisibility(View.VISIBLE);
-                                testRecycler.setVisibility(View.GONE);
-                            } else {
-                                noDataLayout.setVisibility(View.GONE);
-                                testRecycler.setVisibility(View.VISIBLE);
-                                adapter.setTests(tests);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
+                loadData(api);
 
                 handler.postDelayed(this, 120000);
             }
         };
 
         handler.post(periodicRunnable);
+    }
+
+    private void loadData(ApiService api) {
+        api.getTests(Statics.CLIENT_ID).enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Test>> call, @NonNull Response<List<Test>> response) {
+                if (response.isSuccessful()) {
+                    List<Test> tests = response.body();
+                    if (tests == null || tests.isEmpty()) {
+                        refreshLayout.setVisibility(View.GONE);
+                        noDataLayout.setVisibility(View.VISIBLE);
+                        testRecycler.setVisibility(View.GONE);
+                    } else {
+                        refreshLayout.setVisibility(View.VISIBLE);
+                        noDataLayout.setVisibility(View.GONE);
+                        testRecycler.setVisibility(View.VISIBLE);
+                        adapter.setTests(tests);
+                    }
+                }
+                refreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Test>> call, @NonNull Throwable t) {
+                refreshLayout.setRefreshing(false);
+                Log.e("LOAD TEST", "FAILED TO LOAD TEST: " + t.getMessage());
+                Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override
