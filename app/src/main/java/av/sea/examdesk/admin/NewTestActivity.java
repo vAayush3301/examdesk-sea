@@ -234,6 +234,7 @@ public class NewTestActivity extends AppCompatActivity {
                     Toast.makeText(NewTestActivity.this, "Test Published", Toast.LENGTH_SHORT).show();
 
                     if (editFlag) {
+                        NewTestActivity.this.test.getImageKeys().clear();
                         Call<ResponseBody> deleteTestCall = apiService.deleteTest(Statics.CLIENT_ID, NewTestActivity.this.test);
                         deleteTestCall.enqueue(new Callback<>() {
                             @Override
