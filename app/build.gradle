@@ -35,6 +35,9 @@ dependencies {
     implementation libs.converter.gson
     implementation libs.glide
 
+    implementation libs.poi.ooxml
+    implementation libs.commons.collections4
+
     implementation libs.core.splashscreen
     implementation libs.swiperefreshlayout
     implementation libs.shimmer

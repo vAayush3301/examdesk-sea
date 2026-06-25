@@ -29,6 +29,13 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -180,8 +187,11 @@ public class NewTestActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.action_previous) {
                 handlePrevious();
                 return true;
-            } else {
+            } else if (item.getItemId() == R.id.action_add_images) {
                 handleImages();
+                return true;
+            } else {
+                importFromFile();
                 return true;
             }
         });
@@ -212,6 +222,48 @@ public class NewTestActivity extends AppCompatActivity {
 
                     })).show();
         });
+    }
+
+    private final ActivityResultLauncher<String[]> filePicker = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(),
+            this::readFile
+    );
+
+    private void importFromFile() {
+        filePicker.launch(new String[]{
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel"
+        });
+    }
+
+    private void readFile(Uri uri) {
+        try {
+            InputStream is = getContentResolver().openInputStream(uri);
+
+            Workbook workbook = WorkbookFactory.create(is);
+            Sheet sheet = workbook.getSheetAt(0);
+
+            DataFormatter formatter = new DataFormatter();
+
+            for (Row row : sheet) {
+
+                StringBuilder builder = new StringBuilder();
+
+                for (Cell cell : row) {
+
+                    String value = formatter.formatCellValue(cell);
+                    builder.append(value).append(" | ");
+                }
+
+                Log.d("EXCEL", builder.toString());
+            }
+
+            workbook.close();
+            is.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void publishTest(int duration) {
