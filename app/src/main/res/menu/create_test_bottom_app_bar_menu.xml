@@ -23,4 +23,11 @@
         android:iconTint="?attr/colorOnPrimary"
         android:title="Add Images"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_import_file"
+        android:icon="@drawable/file_import"
+        android:iconTint="?attr/colorOnPrimary"
+        android:title="Import from Excel File"
+        app:showAsAction="ifRoom" />
 </menu>
