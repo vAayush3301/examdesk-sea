@@ -74,6 +74,13 @@
             android:text="Delete"
             app:icon="@drawable/delete_test" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/downloadTest"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/download" />
+
     </LinearLayout>
 
 </LinearLayout>

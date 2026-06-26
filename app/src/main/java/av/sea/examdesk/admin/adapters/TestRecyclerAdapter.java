@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,16 +22,23 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textview.MaterialTextView;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import av.sea.examdesk.R;
+import av.sea.examdesk.admin.HomeFragment;
 import av.sea.examdesk.admin.NewTestActivity;
 import av.sea.examdesk.helpers.ApiService;
 import av.sea.examdesk.helpers.ResultEvaluator;
 import av.sea.examdesk.helpers.Statics;
+import av.sea.examdesk.model.Question;
 import av.sea.examdesk.model.SubmitResponse;
 import av.sea.examdesk.model.Test;
 import av.sea.examdesk.model.UserResult;
@@ -40,14 +48,16 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapter.ViewHolder> {
+    private final ApiService apiService;
+    private final ActivityResultLauncher<String> saveFileLauncher;
     Context context;
     List<Test> tests;
-    private final ApiService apiService;
 
-    public TestRecyclerAdapter(Context context, List<Test> tests, ApiService apiService) {
+    public TestRecyclerAdapter(Context context, List<Test> tests, ApiService apiService, ActivityResultLauncher<String> saveFileLauncher) {
         this.context = context;
         this.tests = tests;
         this.apiService = apiService;
+        this.saveFileLauncher = saveFileLauncher;
     }
 
     public void setTests(List<Test> tests) {
@@ -64,7 +74,7 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull TestRecyclerAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull TestRecyclerAdapter.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         Test test = tests.get(position);
 
         holder.testName.setText(test.getTestName());
@@ -105,6 +115,11 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
                         });
                     })
                     .show();
+        });
+
+        holder.downloadTest.setOnClickListener(v -> {
+            HomeFragment.position = position;
+            saveFileLauncher.launch(test.getTestName() + ".xlsx");
         });
 
         holder.resultTest.setOnClickListener(v -> {
@@ -200,9 +215,47 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
         return tests.size();
     }
 
+    public void saveExcel(Uri uri, int position) {
+        Test test = tests.get(position);
+        List<Question> questions = test.getQuestions();
+
+        try (
+                OutputStream os = context.getContentResolver().openOutputStream(uri);
+                Workbook workbook = new XSSFWorkbook()
+        ) {
+
+            Sheet sheet = workbook.createSheet(test.getTestName());
+
+            Row header = sheet.createRow(0);
+            header.createCell(0).setCellValue("Question Text");
+            header.createCell(1).setCellValue("Option 1");
+            header.createCell(2).setCellValue("Option 2");
+            header.createCell(3).setCellValue("Option 3");
+            header.createCell(4).setCellValue("Option 4");
+            header.createCell(5).setCellValue("Correct Option");
+
+            for (int i = 1; i < questions.size(); i++) {
+                Question question = questions.get(i);
+
+                Row row = sheet.createRow(i);
+                row.createCell(0).setCellValue(question.getQuestionText());
+                row.createCell(1).setCellValue(question.getOption1());
+                row.createCell(2).setCellValue(question.getOption2());
+                row.createCell(3).setCellValue(question.getOption3());
+                row.createCell(4).setCellValue(question.getOption4());
+                row.createCell(5).setCellValue(question.getCorrectOption());
+            }
+
+            workbook.write(os);
+            os.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         MaterialTextView testName, testDuration;
-        MaterialButton resultTest, editTest, deleteTest;
+        MaterialButton resultTest, editTest, deleteTest, downloadTest;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -213,6 +266,7 @@ public class TestRecyclerAdapter extends RecyclerView.Adapter<TestRecyclerAdapte
             resultTest = itemView.findViewById(R.id.resultTest);
             editTest = itemView.findViewById(R.id.editTest);
             deleteTest = itemView.findViewById(R.id.deleteTest);
+            downloadTest = itemView.findViewById(R.id.downloadTest);
         }
     }
 }

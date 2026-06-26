@@ -1,14 +1,16 @@
 package av.sea.examdesk.admin;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -19,6 +21,12 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,14 +44,23 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HomeFragment extends Fragment {
     private final Handler handler = new Handler();
-    Parcelable state;
     private TestRecyclerAdapter adapter;
-
+    public static int position = 0;
+    private final ActivityResultLauncher<String> saveFileLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.CreateDocument(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+                    uri -> {
+                        if (uri != null) {
+                            adapter.saveExcel(uri, position);
+                        }
+                    }
+            );
+    Parcelable state;
     private ShimmerFrameLayout shimmerLayout;
     private SwipeRefreshLayout refreshLayout;
     private RecyclerView testRecycler;
     private LinearLayout noDataLayout;
-
     public HomeFragment() {
         super(R.layout.fragment_home);
     }
@@ -71,7 +88,7 @@ public class HomeFragment extends Fragment {
         testRecycler.setLayoutManager(new LinearLayoutManager(this.getContext()));
 
         List<Test> tests = new ArrayList<>();
-        adapter = new TestRecyclerAdapter(requireContext(), tests, api);
+        adapter = new TestRecyclerAdapter(requireActivity(), tests, api, saveFileLauncher);
         testRecycler.setAdapter(adapter);
 
         refreshLayout.setVisibility(View.GONE);
