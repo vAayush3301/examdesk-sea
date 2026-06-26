@@ -29,7 +29,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
 
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -68,13 +67,14 @@ public class NewTestActivity extends AppCompatActivity {
     private Test test;
     private List<Image> imageKeys = new ArrayList<>();
     private List<Question> questions = new ArrayList<>();
-
+    private final ActivityResultLauncher<String[]> filePicker = registerForActivityResult(
+            new ActivityResultContracts.OpenDocument(),
+            this::readFile
+    );
     private boolean editFlag = false;
     private int currentQuestion = 1;
-
     private ActivityResultLauncher<String> pickImageLauncher;
     private String imageAlt;
-
     private ImageListAdapter imageListAdapter;
 
     @Override
@@ -224,11 +224,6 @@ public class NewTestActivity extends AppCompatActivity {
         });
     }
 
-    private final ActivityResultLauncher<String[]> filePicker = registerForActivityResult(
-            new ActivityResultContracts.OpenDocument(),
-            this::readFile
-    );
-
     private void importFromFile() {
         filePicker.launch(new String[]{
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -237,6 +232,8 @@ public class NewTestActivity extends AppCompatActivity {
     }
 
     private void readFile(Uri uri) {
+        List<Question> questions = new ArrayList<>();
+
         try {
             InputStream is = getContentResolver().openInputStream(uri);
 
@@ -245,22 +242,31 @@ public class NewTestActivity extends AppCompatActivity {
 
             DataFormatter formatter = new DataFormatter();
 
-            for (Row row : sheet) {
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
 
-                StringBuilder builder = new StringBuilder();
+                if (row == null)
+                    continue;
 
-                for (Cell cell : row) {
+                String questionText = formatter.formatCellValue(row.getCell(0));
+                String option1 = formatter.formatCellValue(row.getCell(1));
+                String option2 = formatter.formatCellValue(row.getCell(2));
+                String option3 = formatter.formatCellValue(row.getCell(3));
+                String option4 = formatter.formatCellValue(row.getCell(4));
+                String correctOption = formatter.formatCellValue(row.getCell(5));
 
-                    String value = formatter.formatCellValue(cell);
-                    builder.append(value).append(" | ");
-                }
+                Question question = new Question(questionText, option1, option2, option3, option4, correctOption);
+                questions.add(question);
 
-                Log.d("EXCEL", builder.toString());
+                Log.d("Excel",
+                        String.valueOf(question.getQuestionText()));
             }
 
             workbook.close();
             is.close();
 
+            this.questions = questions;
+            loadQuestion(1);
         } catch (Exception e) {
             e.printStackTrace();
         }
